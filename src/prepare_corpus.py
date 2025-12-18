@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import re
 import pandas as pd
 import os
+import json
 import base64
 
 def clean_math(math_tag):
@@ -103,15 +104,29 @@ for path in paths:
 
 
 # visualise the dictionary and print only first few characters of all strings
-for pii, fig_ref_para_dict in pii_fig_ref_para_dict.items():
-    print(pii)
-    for figure_id, data in fig_ref_para_dict.items():
-        try:
-          print('-'*100)
-          print(figure_id)
-          print(f"Caption: {data['caption'][:100] if data['caption'] else 'No caption'}")
-          print(f"Descriptions: {data['descriptions'][0][:100] if data['descriptions'] else 'No descriptions'}")
-          print(f"Image (base64, first 100 chars): {data['image'][:100] if data['image'] else 'No image'}")
-          print('-'*100)
-        except Exception as e:
-          print(f"Error: {e}")
+verbose = len(pii_fig_ref_para_dict) < 5
+if verbose:
+    for pii, fig_ref_para_dict in pii_fig_ref_para_dict.items():
+        print(pii)
+        for figure_id, data in fig_ref_para_dict.items():
+            try:
+                print('-'*100)
+                print(figure_id)
+                print(f"Caption: {data['caption'][:100] if data['caption'] else 'No caption'}")
+                print(f"Descriptions: {data['descriptions'][0][:100] if data['descriptions'] else 'No descriptions'}")
+                print(f"Image (base64, first 100 chars): {data['image'][:100] if data['image'] else 'No image'}")
+                print('-'*100)
+            except Exception as e:
+                print(f"Error: {e}")
+        break
+
+with open('pii_fig_ref_para_dict.jsonl', 'w') as f:
+    for pii, fig_ref_para_dict in pii_fig_ref_para_dict.items():
+        for figure_id, data in fig_ref_para_dict.items():
+            f.write(json.dumps({
+                'pii': pii,
+                'figure_id': figure_id,
+                'caption': data['caption'],
+                'descriptions': data['descriptions'],
+                'image': data['image']
+            }) + '\n')
